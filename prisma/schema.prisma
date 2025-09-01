@@ -1,0 +1,100 @@
+// Prisma Schema 文件
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户表 (Prisma管理)
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  firstName String?
+  lastName  String?
+  avatar    String?
+  bio       String?  @db.Text
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关联文章
+  articles Article[]
+
+  @@map("users")
+}
+
+// 文章表 (Prisma管理)
+model Article {
+  id          Int       @id @default(autoincrement())
+  title       String
+  content     String    @db.Text
+  excerpt     String?
+  slug        String    @unique
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  views       Int       @default(0)
+  likes       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // 外键关联
+  authorId Int
+  author   User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  // 分类关联
+  categoryId Int?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  // 标签关联
+  tags ArticleTag[]
+
+  @@map("articles")
+}
+
+// 分类表 (Prisma管理)
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  slug        String   @unique
+  color       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 关联文章
+  articles Article[]
+
+  @@map("categories")
+}
+
+// 标签表 (Prisma管理)
+model Tag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  slug      String   @unique
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 多对多关联
+  articles ArticleTag[]
+
+  @@map("tags")
+}
+
+// 文章标签关联表 (多对多)
+model ArticleTag {
+  articleId Int
+  tagId     Int
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@map("article_tags")
+}
