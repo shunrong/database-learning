@@ -90,17 +90,18 @@ class Order {
 
   // 获取所有订单
   static async findAll(limit = 50, offset = 0) {
-    const query = `
-      SELECT * FROM orders 
-      ORDER BY created_at DESC 
-      LIMIT ? OFFSET ?
-    `;
+    // 先尝试一个简单的查询
+    const simpleQuery = `SELECT * FROM orders ORDER BY created_at DESC LIMIT 10`;
     
     try {
-      const [rows] = await mysqlPool.execute(query, [limit, offset]);
+      console.log(`🔍 尝试简单查询订单`);
+      
+      const [rows] = await mysqlPool.execute(simpleQuery);
+      console.log(`✅ 简单查询成功，查询到 ${rows.length} 条订单`);
+      
       return rows.map(row => new Order(row));
     } catch (error) {
-      console.error('❌ 获取订单列表失败:', error);
+      console.error('❌ 简单查询也失败:', error);
       throw error;
     }
   }
@@ -115,7 +116,11 @@ class Order {
     `;
     
     try {
-      const [rows] = await mysqlPool.execute(query, [userId, limit, offset]);
+      const userIdInt = parseInt(userId, 10);
+      const limitInt = parseInt(limit, 10);
+      const offsetInt = parseInt(offset, 10);
+      
+      const [rows] = await mysqlPool.execute(query, [userIdInt, limitInt, offsetInt]);
       return rows.map(row => new Order(row));
     } catch (error) {
       console.error('❌ 查找用户订单失败:', error);
@@ -133,7 +138,10 @@ class Order {
     `;
     
     try {
-      const [rows] = await mysqlPool.execute(query, [status, limit, offset]);
+      const limitInt = parseInt(limit, 10);
+      const offsetInt = parseInt(offset, 10);
+      
+      const [rows] = await mysqlPool.execute(query, [status, limitInt, offsetInt]);
       return rows.map(row => new Order(row));
     } catch (error) {
       console.error('❌ 按状态查找订单失败:', error);

@@ -53,6 +53,16 @@ router.get('/stats',
 );
 
 /**
+ * @route   GET /api/products/categories
+ * @desc    获取产品分类列表
+ * @access  Public
+ */
+router.get('/categories',
+  rateLimitConfigs.general,
+  asyncHandler(productController.getCategories)
+);
+
+/**
  * @route   GET /api/products/category/:category
  * @desc    根据分类获取产品
  * @access  Public

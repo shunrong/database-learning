@@ -16,14 +16,24 @@ const createRateLimit = (options = {}) => {
 
   return async (req, res, next) => {
     try {
+      // 检查全局限流开关
+      if (process.env.DISABLE_RATE_LIMIT === 'true' || process.env.RATE_LIMIT_ENABLED === 'false') {
+        console.log('🔓 限流已禁用，跳过限流检查');
+        return next();
+      }
       // 生成限流键
       let key;
       if (keyGenerator && typeof keyGenerator === 'function') {
         key = keyGenerator(req);
       } else {
-        // 默认使用IP地址
-        const ip = req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
-        key = `rate_limit:${ip}`;
+        // 默认使用IP地址，提供更好的IP获取逻辑
+        const ip = req.ip || 
+                  req.connection?.remoteAddress || 
+                  req.socket?.remoteAddress ||
+                  req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                  req.headers['x-real-ip'] ||
+                  'unknown';
+        key = ip;
       }
 
       // 检查限流
@@ -108,7 +118,12 @@ const rateLimitConfigs = {
     max: 5,
     message: '登录尝试过于频繁，请15分钟后再试',
     keyGenerator: (req) => {
-      const ip = req.ip || req.connection.remoteAddress;
+      const ip = req.ip || 
+                req.connection?.remoteAddress || 
+                req.socket?.remoteAddress ||
+                req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                req.headers['x-real-ip'] ||
+                'unknown';
       return `auth_limit:${ip}`;
     },
     onLimitReached: (req, res) => {
@@ -141,7 +156,12 @@ const rateLimitConfigs = {
         return `user_limit:${req.user.id}`;
       }
       // 未认证用户使用IP限流
-      const ip = req.ip || req.connection.remoteAddress;
+      const ip = req.ip || 
+                req.connection?.remoteAddress || 
+                req.socket?.remoteAddress ||
+                req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                req.headers['x-real-ip'] ||
+                'unknown';
       return `ip_limit:${ip}`;
     }
   }),
@@ -165,7 +185,12 @@ const customRateLimit = (identifier, limit, windowMs, message) => {
     max: limit,
     message: message || '请求过于频繁，请稍后再试',
     keyGenerator: (req) => {
-      const ip = req.ip || req.connection.remoteAddress;
+      const ip = req.ip || 
+                req.connection?.remoteAddress || 
+                req.socket?.remoteAddress ||
+                req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                req.headers['x-real-ip'] ||
+                'unknown';
       return `custom_${identifier}:${ip}`;
     }
   });

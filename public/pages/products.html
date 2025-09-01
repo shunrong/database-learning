@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品管理 - 数据库学习平台</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-database"></i>
+                <span>数据库学习平台</span>
+            </div>
+            <div class="nav-menu">
+                <a href="../index.html" class="nav-link">
+                    <i class="fas fa-home"></i> 首页
+                </a>
+                <a href="users.html" class="nav-link">
+                    <i class="fas fa-users"></i> 用户管理
+                </a>
+                <a href="products.html" class="nav-link active">
+                    <i class="fas fa-box"></i> 产品管理
+                </a>
+                <a href="orders.html" class="nav-link">
+                    <i class="fas fa-shopping-cart"></i> 订单管理
+                </a>
+                <a href="login.html" class="nav-link" id="authLink">
+                    <i class="fas fa-sign-in-alt"></i> 登录
+                </a>
+            </div>
+            <div class="nav-user" id="userInfo" style="display: none;">
+                <span id="userName">用户</span>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 页面头部 -->
+            <div class="page-header">
+                <div class="d-flex justify-between align-center mb-5">
+                    <div>
+                        <h1><i class="fas fa-box"></i> 产品管理</h1>
+                        <p class="text-gray-600">管理系统产品，基于 MongoDB 存储</p>
+                    </div>
+                    <button class="btn-primary" onclick="showAddProductModal()">
+                        <i class="fas fa-plus"></i> 添加产品
+                    </button>
+                </div>
+
+                <!-- 统计卡片 -->
+                <div class="hero-stats mb-5">
+                    <div class="stat-card">
+                        <i class="fas fa-box"></i>
+                        <h3 id="totalProductsCount">-</h3>
+                        <p>总产品数</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-eye"></i>
+                        <h3 id="publishedProductsCount">-</h3>
+                        <p>已发布</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-layer-group"></i>
+                        <h3 id="categoriesCount">-</h3>
+                        <p>分类数</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-warehouse"></i>
+                        <h3 id="totalStock">-</h3>
+                        <p>总库存</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 筛选和搜索 -->
+            <div class="filters-section">
+                <div class="d-flex justify-between align-center mb-4">
+                    <div class="search-container">
+                        <div class="form-group">
+                            <input type="text" 
+                                   id="searchInput" 
+                                   class="form-input" 
+                                   placeholder="搜索产品名称、描述..."
+                                   style="width: 300px;">
+                        </div>
+                    </div>
+                    <div class="filter-controls d-flex gap-2">
+                        <select id="categoryFilter" class="form-select">
+                            <option value="">所有分类</option>
+                        </select>
+                        <select id="statusFilter" class="form-select">
+                            <option value="">所有状态</option>
+                            <option value="true">已发布</option>
+                            <option value="false">草稿</option>
+                        </select>
+                        <button class="btn-secondary" onclick="refreshProducts()">
+                            <i class="fas fa-sync-alt"></i> 刷新
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 产品网格 -->
+            <div id="loadingProducts" class="loading p-4 text-center">
+                <div class="spinner"></div>
+                <span>加载产品数据中...</span>
+            </div>
+            
+            <div id="productsGrid" class="products-grid" style="display: none;">
+                <!-- 产品卡片将通过 JavaScript 填充 -->
+            </div>
+
+            <!-- 分页 -->
+            <div id="pagination" class="pagination-container mt-4 text-center">
+                <!-- 分页将通过 JavaScript 生成 -->
+            </div>
+        </div>
+    </main>
+
+    <!-- 添加/编辑产品模态框 -->
+    <div class="modal" id="productModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">添加产品</h3>
+                <button class="btn-close" onclick="closeProductModal()">&times;</button>
+            </div>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                
+                <div class="form-group">
+                    <label class="form-label">产品名称 *</label>
+                    <input type="text" id="name" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">产品描述 *</label>
+                    <textarea id="description" class="form-textarea" rows="3" required></textarea>
+                </div>
+                
+                <div class="d-flex gap-4">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">价格 *</label>
+                        <input type="number" id="price" class="form-input" step="0.01" min="0" required>
+                    </div>
+                    
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">库存 *</label>
+                        <input type="number" id="stock" class="form-input" min="0" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">分类</label>
+                    <select id="category" class="form-select">
+                        <option value="">选择分类</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">标签</label>
+                    <input type="text" id="tags" class="form-input" placeholder="用逗号分隔多个标签">
+                    <small class="text-gray-600">例如: 热销,新品,推荐</small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">产品图片 URL</label>
+                    <input type="url" id="imageUrl" class="form-input" placeholder="https://example.com/image.jpg">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">SKU</label>
+                    <input type="text" id="sku" class="form-input" placeholder="产品SKU编码">
+                </div>
+                
+                <div class="d-flex gap-4">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">重量 (kg)</label>
+                        <input type="number" id="weight" class="form-input" step="0.01" min="0">
+                    </div>
+                    
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">尺寸</label>
+                        <input type="text" id="dimensions" class="form-input" placeholder="长×宽×高">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="isPublished"> 立即发布
+                    </label>
+                </div>
+                
+                <div class="d-flex justify-between mt-4">
+                    <button type="button" class="btn-secondary" onclick="closeProductModal()">
+                        取消
+                    </button>
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <span id="submitText">添加产品</span>
+                        <div class="spinner" id="submitSpinner" style="display: none;"></div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 产品详情模态框 -->
+    <div class="modal" id="productDetailModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3 class="modal-title">产品详情</h3>
+                <button class="btn-close" onclick="closeProductDetailModal()">&times;</button>
+            </div>
+            <div id="productDetailContent">
+                <!-- 产品详情内容将通过 JavaScript 填充 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认删除模态框 -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">确认删除</h3>
+                <button class="btn-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <p>确定要删除产品 "<span id="deleteProductName"></span>" 吗？</p>
+            <p class="text-sm text-gray-600">此操作不可撤销。</p>
+            <div class="d-flex justify-between mt-4">
+                <button type="button" class="btn-secondary" onclick="closeDeleteModal()">
+                    取消
+                </button>
+                <button type="button" class="btn-error" onclick="confirmDelete()">
+                    <i class="fas fa-trash"></i> 确认删除
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/products.js"></script>
+
+    <style>
+    /* 产品网格样式 */
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: var(--spacing-xl);
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    .product-card {
+        background: white;
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .product-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        background: var(--gray-100);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--gray-400);
+        font-size: 3rem;
+    }
+
+    .product-content {
+        padding: var(--spacing-lg);
+    }
+
+    .product-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: var(--spacing-sm);
+        color: var(--gray-800);
+    }
+
+    .product-description {
+        color: var(--gray-600);
+        margin-bottom: var(--spacing-md);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .product-price {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .product-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-md);
+        font-size: 0.875rem;
+        color: var(--gray-600);
+    }
+
+    .product-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-xs);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .product-tag {
+        background: var(--primary-light);
+        color: var(--primary-color);
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--radius-sm);
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .product-actions {
+        display: flex;
+        gap: var(--spacing-sm);
+    }
+
+    .btn-sm {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.875rem;
+        border-radius: var(--radius-sm);
+    }
+
+    .btn-error {
+        background: var(--error-color);
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .btn-error:hover {
+        background: #dc2626;
+    }
+    </style>
+</body>
+</html>

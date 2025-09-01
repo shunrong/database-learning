@@ -289,17 +289,31 @@ class CacheService {
 
   // 限流 - 检查并更新限制
   async checkRateLimit(identifier, limit = 100, window = 3600) {
-    const key = `rate_limit:${identifier}`;
+    // 清理 identifier，移除无效字符
+    const cleanIdentifier = String(identifier).replace(/[^a-zA-Z0-9._-]/g, '_');
+    const key = `rate_limit:${cleanIdentifier}`;
+    
     try {
+      console.log(`🔍 限流检查: key=${key}, limit=${limit}, window=${window}`);
+      
       const current = await redisClient.get(key);
       if (current === null) {
-        await redisClient.setEx(key, window, 1);
+        // 第一次访问，设置初始值
+        await redisClient.setEx(key, window, '1');
+        console.log(`✅ 限流初始化: ${key} = 1`);
         return { allowed: true, remaining: limit - 1, resetTime: Date.now() + window * 1000 };
       }
       
-      const count = parseInt(current);
+      const count = parseInt(current, 10);
+      if (isNaN(count)) {
+        console.warn(`⚠️ 限流计数器值无效: ${current}, 重置为1`);
+        await redisClient.setEx(key, window, '1');
+        return { allowed: true, remaining: limit - 1, resetTime: Date.now() + window * 1000 };
+      }
+      
       if (count >= limit) {
         const ttl = await redisClient.ttl(key);
+        console.log(`🚫 限流触发: ${key}, count=${count}, limit=${limit}`);
         return { 
           allowed: false, 
           remaining: 0, 
@@ -307,15 +321,19 @@ class CacheService {
         };
       }
       
-      await redisClient.incr(key);
+      // 增加计数器
+      const newCount = await redisClient.incr(key);
       const ttl = await redisClient.ttl(key);
+      console.log(`✅ 限流通过: ${key}, count=${newCount}, remaining=${limit - newCount}`);
+      
       return { 
         allowed: true, 
-        remaining: limit - count - 1, 
+        remaining: Math.max(0, limit - newCount), 
         resetTime: Date.now() + ttl * 1000 
       };
     } catch (error) {
-      console.error(`❌ 限流检查失败 ${identifier}:`, error);
+      console.error(`❌ 限流检查失败 ${cleanIdentifier}:`, error);
+      // 发生错误时允许请求通过
       return { allowed: true, remaining: limit, resetTime: Date.now() + window * 1000 };
     }
   }

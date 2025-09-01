@@ -12,7 +12,7 @@ const authenticateToken = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: '访问被拒绝，需要提供访问令牌'
-      });
+      });g
     }
 
     // 验证JWT令牌

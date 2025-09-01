@@ -18,13 +18,21 @@ services:
       - MONGODB_URI=mongodb://mongodb:27017/database_learning
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=database_learning_password
+      - POSTGRES_DATABASE=database_learning
       - JWT_SECRET=your_production_jwt_secret_here
+      - DISABLE_RATE_LIMIT=true
     depends_on:
       mysql:
         condition: service_healthy
       mongodb:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     restart: unless-stopped
     networks:
@@ -99,6 +107,27 @@ services:
     networks:
       - database-learning-network
 
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=database_learning_password
+      - POSTGRES_DB=database_learning
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - database-learning-network
+
   # MySQL 管理界面 (可选)
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -144,6 +173,20 @@ services:
     networks:
       - database-learning-network
 
+  # PostgreSQL 管理界面 (可选)
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+    ports:
+      - "8083:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - database-learning-network
+
 # 数据卷
 volumes:
   mysql_data:
@@ -151,6 +194,8 @@ volumes:
   mongodb_data:
     driver: local
   redis_data:
+    driver: local
+  postgres_data:
     driver: local
 
 # 网络

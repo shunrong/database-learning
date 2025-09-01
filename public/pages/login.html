@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 数据库学习平台</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-database"></i>
+                <span>数据库学习平台</span>
+            </div>
+            <div class="nav-menu">
+                <a href="../index.html" class="nav-link">
+                    <i class="fas fa-home"></i> 首页
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main class="main-content">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1><i class="fas fa-sign-in-alt"></i> 登录</h1>
+                    <p>登录到数据库学习平台管理后台</p>
+                </div>
+
+                <!-- 登录表单 -->
+                <form id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label class="form-label">邮箱</label>
+                        <input type="email" id="email" class="form-input" required placeholder="请输入邮箱地址">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">密码</label>
+                        <input type="password" id="password" class="form-input" required placeholder="请输入密码">
+                    </div>
+
+                    <button type="submit" class="btn-primary w-full" id="loginBtn">
+                        <span id="loginText">登录</span>
+                        <div class="spinner" id="loginSpinner" style="display: none;"></div>
+                    </button>
+                </form>
+
+                <div class="auth-divider">
+                    <span>或</span>
+                </div>
+
+                <!-- 注册表单 -->
+                <div class="auth-toggle">
+                    <p>还没有账户？</p>
+                    <button class="btn-secondary w-full" id="showRegisterBtn">
+                        <i class="fas fa-user-plus"></i> 注册新账户
+                    </button>
+                </div>
+
+                <!-- 快速登录 -->
+                <div class="quick-login">
+                    <h3>快速登录</h3>
+                    <p>使用以下测试账户快速体验：</p>
+                    <div class="test-accounts">
+                        <button class="test-account-btn" id="adminQuickLogin" data-email="admin@example.com" data-password="admin123">
+                            <i class="fas fa-user-shield"></i>
+                            <div>
+                                <strong>管理员</strong>
+                                <small>admin@example.com</small>
+                            </div>
+                        </button>
+                        <button class="test-account-btn" id="userQuickLogin" data-email="john.doe@example.com" data-password="password123">
+                            <i class="fas fa-user"></i>
+                            <div>
+                                <strong>普通用户</strong>
+                                <small>john.doe@example.com</small>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 注册模态框 -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">注册新账户</h3>
+                <button class="btn-close" id="closeRegisterBtn">&times;</button>
+            </div>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label class="form-label">用户名 *</label>
+                    <input type="text" id="regUsername" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">邮箱 *</label>
+                    <input type="email" id="regEmail" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">密码 *</label>
+                    <input type="password" id="regPassword" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">姓</label>
+                    <input type="text" id="regFirstName" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">名</label>
+                    <input type="text" id="regLastName" class="form-input">
+                </div>
+                
+                <div class="d-flex justify-between mt-4">
+                    <button type="button" class="btn-secondary" id="cancelRegisterBtn">
+                        取消
+                    </button>
+                    <button type="submit" class="btn-primary" id="registerBtn">
+                        <span id="registerText">注册</span>
+                        <div class="spinner" id="registerSpinner" style="display: none;"></div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 消息提示 -->
+    <div id="message" class="message" style="display: none;">
+        <div class="message-content">
+            <i id="messageIcon"></i>
+            <span id="messageText"></span>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/login.js"></script>
+
+    <style>
+    /* 认证页面样式 */
+    .auth-container {
+        min-height: calc(100vh - 4rem);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-xl);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    }
+
+    .auth-card {
+        background: white;
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-xl);
+        padding: var(--spacing-2xl);
+        width: 100%;
+        max-width: 450px;
+    }
+
+    .auth-header {
+        text-align: center;
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    .auth-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .auth-header p {
+        color: var(--gray-600);
+    }
+
+    .auth-form {
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .auth-divider {
+        text-align: center;
+        margin: var(--spacing-xl) 0;
+        position: relative;
+    }
+
+    .auth-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: var(--gray-300);
+    }
+
+    .auth-divider span {
+        background: white;
+        padding: 0 var(--spacing-md);
+        color: var(--gray-500);
+        font-size: 0.875rem;
+    }
+
+    .auth-toggle {
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .auth-toggle p {
+        margin-bottom: var(--spacing-md);
+        color: var(--gray-600);
+    }
+
+    .quick-login {
+        border-top: 1px solid var(--gray-200);
+        padding-top: var(--spacing-xl);
+    }
+
+    .quick-login h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: var(--spacing-sm);
+        color: var(--gray-800);
+    }
+
+    .quick-login p {
+        color: var(--gray-600);
+        margin-bottom: var(--spacing-md);
+        font-size: 0.875rem;
+    }
+
+    .test-accounts {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .test-account-btn {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius-md);
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: left;
+    }
+
+    .test-account-btn:hover {
+        border-color: var(--primary-color);
+        background: var(--gray-50);
+    }
+
+    .test-account-btn i {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+    }
+
+    .test-account-btn div {
+        flex: 1;
+    }
+
+    .test-account-btn strong {
+        display: block;
+        color: var(--gray-800);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .test-account-btn small {
+        color: var(--gray-600);
+        font-size: 0.75rem;
+    }
+
+    /* 消息提示样式 */
+    .message {
+        position: fixed;
+        top: var(--spacing-xl);
+        right: var(--spacing-xl);
+        z-index: 3000;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-xl);
+        overflow: hidden;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    }
+
+    .message.show {
+        transform: translateX(0);
+    }
+
+    .message.success {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .message.error {
+        background: var(--error-color);
+        color: white;
+    }
+
+    .message.info {
+        background: var(--info-color);
+        color: white;
+    }
+
+    .message-content {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+
+    .message i {
+        font-size: 1.25rem;
+    }
+
+    @media (max-width: 768px) {
+        .auth-container {
+            padding: var(--spacing-md);
+        }
+        
+        .auth-card {
+            padding: var(--spacing-xl);
+        }
+    }
+    </style>
+</body>
+</html>

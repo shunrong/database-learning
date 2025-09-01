@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据库学习平台 - 管理后台</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-database"></i>
+                <span>数据库学习平台</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link active">
+                    <i class="fas fa-home"></i> 首页
+                </a>
+                <a href="pages/users.html" class="nav-link">
+                    <i class="fas fa-users"></i> 用户管理
+                </a>
+                <a href="pages/products.html" class="nav-link">
+                    <i class="fas fa-box"></i> 产品管理
+                </a>
+                <a href="pages/orders.html" class="nav-link">
+                    <i class="fas fa-shopping-cart"></i> 订单管理
+                </a>
+                <a href="pages/login.html" class="nav-link" id="authLink">
+                    <i class="fas fa-sign-in-alt"></i> 登录
+                </a>
+            </div>
+            <div class="nav-user" id="userInfo" style="display: none;">
+                <span id="userName">用户</span>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1>数据库学习管理后台</h1>
+                <p>体验 MySQL、MongoDB、Redis、PostgreSQL 四种数据库的完整集成方案</p>
+                <div class="hero-stats">
+                    <div class="stat-card">
+                        <i class="fas fa-database"></i>
+                        <h3>4</h3>
+                        <p>数据库类型</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-users"></i>
+                        <h3 id="totalUsers">-</h3>
+                        <p>注册用户</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-box"></i>
+                        <h3 id="totalProducts">-</h3>
+                        <p>产品数量</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h3 id="totalOrders">-</h3>
+                        <p>订单总数</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 功能介绍 -->
+        <section class="features">
+            <div class="container">
+                <h2>平台功能</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-users"></i>
+                        <h3>用户管理</h3>
+                        <p>完整的用户注册、登录、权限管理系统，支持JWT认证</p>
+                        <a href="pages/users.html" class="btn-primary">
+                            查看用户 <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-box"></i>
+                        <h3>产品管理</h3>
+                        <p>基于MongoDB的产品信息管理，支持分类、标签、库存管理</p>
+                        <a href="pages/products.html" class="btn-primary">
+                            查看产品 <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h3>订单管理</h3>
+                        <p>基于MySQL的订单系统，支持状态管理、统计分析</p>
+                        <a href="pages/orders.html" class="btn-primary">
+                            查看订单 <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <h3>性能监控</h3>
+                        <p>Redis缓存监控、限流统计、数据库性能分析</p>
+                        <a href="pages/dashboard.html" class="btn-primary">
+                            查看仪表板 <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 数据库技术栈 -->
+        <section class="tech-stack">
+            <div class="container">
+                <h2>技术栈</h2>
+                <div class="tech-grid">
+                    <div class="tech-card mysql">
+                        <i class="fas fa-database"></i>
+                        <h3>MySQL</h3>
+                        <p>关系型数据库，存储用户信息和订单数据</p>
+                        <ul>
+                            <li>事务支持</li>
+                            <li>ACID特性</li>
+                            <li>复杂查询</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card mongodb">
+                        <i class="fas fa-leaf"></i>
+                        <h3>MongoDB</h3>
+                        <p>文档数据库，存储产品信息和分类数据</p>
+                        <ul>
+                            <li>灵活结构</li>
+                            <li>水平扩展</li>
+                            <li>JSON文档</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card redis">
+                        <i class="fas fa-bolt"></i>
+                        <h3>Redis</h3>
+                        <p>内存数据库，提供缓存和会话管理</p>
+                        <ul>
+                            <li>高性能</li>
+                            <li>数据结构</li>
+                            <li>实时计算</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card postgres">
+                        <i class="fas fa-elephant"></i>
+                        <h3>PostgreSQL</h3>
+                        <p>高级关系型数据库，支持复杂数据类型</p>
+                        <ul>
+                            <li>扩展性强</li>
+                            <li>JSON支持</li>
+                            <li>全文搜索</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>数据库学习平台</h4>
+                    <p>一个完整的多数据库集成学习项目</p>
+                </div>
+                <div class="footer-section">
+                    <h4>技术栈</h4>
+                    <ul>
+                        <li>Node.js + Express</li>
+                        <li>Docker + Docker Compose</li>
+                        <li>JWT认证</li>
+                        <li>RESTful API</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>数据库</h4>
+                    <ul>
+                        <li>MySQL 8.0</li>
+                        <li>MongoDB 6.0</li>
+                        <li>Redis 7.0</li>
+                        <li>PostgreSQL 15</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 数据库学习平台. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -20,9 +20,9 @@ const productSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    required: [true, '分类是必需的'],
+    required: false,
     enum: ['electronics', 'clothing', 'books', 'home', 'sports', 'toys'],
-    default: 'electronics'
+    default: null
   },
   brand: {
     type: String,

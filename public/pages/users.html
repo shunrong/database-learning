@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理 - 数据库学习平台</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-database"></i>
+                <span>数据库学习平台</span>
+            </div>
+            <div class="nav-menu">
+                <a href="../index.html" class="nav-link">
+                    <i class="fas fa-home"></i> 首页
+                </a>
+                <a href="users.html" class="nav-link active">
+                    <i class="fas fa-users"></i> 用户管理
+                </a>
+                <a href="products.html" class="nav-link">
+                    <i class="fas fa-box"></i> 产品管理
+                </a>
+                <a href="orders.html" class="nav-link">
+                    <i class="fas fa-shopping-cart"></i> 订单管理
+                </a>
+                <a href="login.html" class="nav-link" id="authLink">
+                    <i class="fas fa-sign-in-alt"></i> 登录
+                </a>
+            </div>
+            <div class="nav-user" id="userInfo" style="display: none;">
+                <span id="userName">用户</span>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 页面头部 -->
+            <div class="page-header">
+                <div class="d-flex justify-between align-center mb-5">
+                    <div>
+                        <h1><i class="fas fa-users"></i> 用户管理</h1>
+                        <p class="text-gray-600">管理系统用户，基于 MySQL + Prisma 存储</p>
+                    </div>
+                    <button class="btn-primary" onclick="showAddUserModal()">
+                        <i class="fas fa-plus"></i> 添加用户
+                    </button>
+                </div>
+
+                <!-- 统计卡片 -->
+                <div class="hero-stats mb-5">
+                    <div class="stat-card">
+                        <i class="fas fa-users"></i>
+                        <h3 id="totalUsersCount">-</h3>
+                        <p>总用户数</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-user-check"></i>
+                        <h3 id="activeUsersCount">-</h3>
+                        <p>活跃用户</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-user-plus"></i>
+                        <h3 id="newUsersCount">-</h3>
+                        <p>本月新增</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-user-clock"></i>
+                        <h3 id="recentUsersCount">-</h3>
+                        <p>最近活跃</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 筛选和搜索 -->
+            <div class="filters-section">
+                <div class="d-flex justify-between align-center mb-4">
+                    <div class="search-container">
+                        <div class="form-group">
+                            <input type="text" 
+                                   id="searchInput" 
+                                   class="form-input" 
+                                   placeholder="搜索用户名、邮箱..."
+                                   style="width: 300px;">
+                        </div>
+                    </div>
+                    <div class="filter-controls">
+                        <select id="statusFilter" class="form-select">
+                            <option value="">所有状态</option>
+                            <option value="true">活跃</option>
+                            <option value="false">禁用</option>
+                        </select>
+                        <button class="btn-secondary" onclick="refreshUsers()">
+                            <i class="fas fa-sync-alt"></i> 刷新
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 用户列表 -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3><i class="fas fa-list"></i> 用户列表</h3>
+                </div>
+                <div id="loadingUsers" class="loading p-4 text-center">
+                    <div class="spinner"></div>
+                    <span>加载用户数据中...</span>
+                </div>
+                <table class="table" id="usersTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>头像</th>
+                            <th>用户信息</th>
+                            <th>邮箱</th>
+                            <th>状态</th>
+                            <th>注册时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- 用户数据将通过 JavaScript 填充 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页 -->
+            <div id="pagination" class="pagination-container mt-4 text-center">
+                <!-- 分页将通过 JavaScript 生成 -->
+            </div>
+        </div>
+    </main>
+
+    <!-- 添加/编辑用户模态框 -->
+    <div class="modal" id="userModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">添加用户</h3>
+                <button class="btn-close" onclick="closeUserModal()">&times;</button>
+            </div>
+            <form id="userForm">
+                <input type="hidden" id="userId">
+                
+                <div class="form-group">
+                    <label class="form-label">用户名 *</label>
+                    <input type="text" id="username" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">邮箱 *</label>
+                    <input type="email" id="email" class="form-input" required>
+                </div>
+                
+                <div class="form-group" id="passwordGroup">
+                    <label class="form-label">密码 *</label>
+                    <input type="password" id="password" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">姓</label>
+                    <input type="text" id="firstName" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">名</label>
+                    <input type="text" id="lastName" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">个人简介</label>
+                    <textarea id="bio" class="form-textarea" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">状态</label>
+                    <select id="isActive" class="form-select">
+                        <option value="true">活跃</option>
+                        <option value="false">禁用</option>
+                    </select>
+                </div>
+                
+                <div class="d-flex justify-between mt-4">
+                    <button type="button" class="btn-secondary" onclick="closeUserModal()">
+                        取消
+                    </button>
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <span id="submitText">添加用户</span>
+                        <div class="spinner" id="submitSpinner" style="display: none;"></div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 确认删除模态框 -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">确认删除</h3>
+                <button class="btn-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <p>确定要删除用户 "<span id="deleteUserName"></span>" 吗？</p>
+            <p class="text-sm text-gray-600">此操作不可撤销。</p>
+            <div class="d-flex justify-between mt-4">
+                <button type="button" class="btn-secondary" onclick="closeDeleteModal()">
+                    取消
+                </button>
+                <button type="button" class="btn-error" onclick="confirmDelete()">
+                    <i class="fas fa-trash"></i> 确认删除
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/users.js"></script>
+</body>
+</html>

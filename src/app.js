@@ -53,11 +53,14 @@ app.use(express.urlencoded({
   limit: '10mb' 
 }));
 
+// 提供静态文件服务
+app.use(express.static('public'));
+
 // 信任代理 (如果在代理后面运行)
 app.set('trust proxy', 1);
 
 // 全局限流中间件
-app.use(rateLimitConfigs.general);
+// app.use(rateLimitConfigs.general);
 
 // API路由
 app.use('/api', routes);

@@ -9,7 +9,7 @@ const { asyncHandler } = require('../middleware/errorHandler');
 const router = express.Router();
 
 // API 根路径信息
-router.get('/', rateLimitConfigs.general, (req, res) => {
+router.get('/', (req, res) => {
   res.json({
     success: true,
     message: '数据库学习 Express API',

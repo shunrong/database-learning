@@ -56,15 +56,29 @@ class ProductController {
       const limit = parseInt(req.query.limit) || 10;
       const category = req.query.category;
       const search = req.query.search;
+      const status = req.query.status;
       const sortBy = req.query.sortBy || 'createdAt';
       const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
 
       const skip = (page - 1) * limit;
 
       // 构建查询条件
-      const query = { isActive: true };
+      const query = {};
       
-      if (category) {
+      // 状态过滤：如果没有指定状态，默认只显示活跃产品
+      if (status && status.trim() !== '') {
+        if (status === 'published') {
+          query.isActive = true;
+        } else if (status === 'draft') {
+          query.isActive = false;
+        }
+        // 如果是其他状态值，不添加 isActive 过滤（显示所有）
+      } else {
+        query.isActive = true; // 默认只显示活跃产品
+      }
+      
+      // 只有当 category 存在且不为空字符串时才添加分类过滤
+      if (category && category.trim() !== '') {
         query.category = category;
       }
 
@@ -73,7 +87,7 @@ class ProductController {
       }
 
       // 构建缓存键
-      const cacheKey = `products:list:page:${page}:limit:${limit}:category:${category || 'all'}:search:${search || 'none'}:sort:${sortBy}:${sortOrder}`;
+      const cacheKey = `products:list:page:${page}:limit:${limit}:category:${category || 'all'}:search:${search || 'none'}:status:${status || 'default'}:sort:${sortBy}:${sortOrder}`;
       
       // 尝试从缓存获取
       let result = await cacheService.get(cacheKey);
@@ -471,7 +485,8 @@ class ProductController {
         searchConditions.$text = { $search: q };
       }
 
-      if (category) {
+      // 只有当 category 存在且不为空字符串时才添加分类过滤
+      if (category && category.trim() !== '') {
         searchConditions.category = category;
       }
 
@@ -521,6 +536,70 @@ class ProductController {
       res.status(500).json({
         success: false,
         message: '产品搜索失败',
+        error: error.message
+      });
+    }
+  }
+
+  // 获取产品分类列表
+  async getCategories(req, res) {
+    try {
+      const cacheKey = 'products:categories';
+      
+      // 尝试从缓存获取
+      let categories = await cacheService.get(cacheKey);
+      
+      if (!categories) {
+        // 从数据库获取所有使用的分类
+        const categoryData = await Product.aggregate([
+          { $match: { isActive: true, category: { $ne: null } } },
+          { 
+            $group: { 
+              _id: '$category', 
+              count: { $sum: 1 },
+              name: { $first: '$category' }
+            } 
+          },
+          { $sort: { count: -1 } },
+          {
+            $project: {
+              _id: 0,
+              id: '$_id',
+              name: '$name',
+              count: 1
+            }
+          }
+        ]);
+
+        // 添加中文显示名称
+        const categoryMap = {
+          'electronics': '电子产品',
+          'clothing': '服装',
+          'books': '图书',
+          'home': '家居',
+          'sports': '运动',
+          'toys': '玩具'
+        };
+
+        categories = categoryData.map(cat => ({
+          ...cat,
+          displayName: categoryMap[cat.id] || cat.name
+        }));
+
+        // 缓存30分钟
+        await cacheService.set(cacheKey, categories, 1800);
+      }
+
+      res.json({
+        success: true,
+        message: '获取产品分类成功',
+        data: categories
+      });
+    } catch (error) {
+      console.error('获取产品分类失败:', error);
+      res.status(500).json({
+        success: false,
+        message: '获取产品分类失败',
         error: error.message
       });
     }

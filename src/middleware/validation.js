@@ -151,10 +151,10 @@ const productSchemas = {
       }),
     category: Joi.string()
       .valid('electronics', 'clothing', 'books', 'home', 'sports', 'toys')
-      .required()
+      .optional()
+      .allow('')
       .messages({
-        'any.only': '分类必须是: electronics, clothing, books, home, sports, toys 中的一个',
-        'any.required': '分类是必需的'
+        'any.only': '分类必须是: electronics, clothing, books, home, sports, toys 中的一个'
       }),
     brand: Joi.string()
       .max(50)
@@ -211,7 +211,8 @@ const productSchemas = {
       .optional(),
     category: Joi.string()
       .valid('electronics', 'clothing', 'books', 'home', 'sports', 'toys')
-      .optional(),
+      .optional()
+      .allow(''),
     brand: Joi.string()
       .max(50)
       .optional(),
@@ -379,9 +380,15 @@ const querySchemas = {
 
   // 产品搜索参数
   productSearch: Joi.object({
-    q: Joi.string().max(100).optional(),
+    q: Joi.string().max(100).allow('').optional(),
+    search: Joi.string().max(100).allow('').optional(),
     category: Joi.string()
       .valid('electronics', 'clothing', 'books', 'home', 'sports', 'toys')
+      .allow('')
+      .optional(),
+    status: Joi.string()
+      .valid('published', 'draft', 'all')
+      .allow('')
       .optional(),
     minPrice: Joi.number().positive().optional(),
     maxPrice: Joi.number().positive().optional(),
